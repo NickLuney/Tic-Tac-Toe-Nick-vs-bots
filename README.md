@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tic Tac Toe – Vs Bot</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0f172a;
+      color: #e5e7eb;
+    }
+
+    .game-container {
+      background: #020617;
+      padding: 24px 28px 28px;
+      border-radius: 20px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+      width: 320px;
+      max-width: 90vw;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      text-align: center;
+      letter-spacing: 0.04em;
+    }
+
+    .subtitle {
+      text-align: center;
+      margin-bottom: 18px;
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    .status {
+      text-align: center;
+      margin-bottom: 16px;
+      font-size: 15px;
+      font-weight: 500;
+      min-height: 1.5em;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-bottom: 18px;
+    }
+
+    .cell {
+      width: 90px;
+      height: 90px;
+      max-width: 26vw;
+      max-height: 26vw;
+      border-radius: 12px;
+      border: 1px solid #1f2937;
+      background: radial-gradient(circle at 10% 0%, #020617, #020617 55%, #030712 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, background 0.15s ease-out;
+    }
+
+    .cell:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(15, 23, 42, 0.8);
+    }
+
+    .cell.disabled {
+      cursor: default;
+      opacity: 0.85;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .cell.win {
+      background: radial-gradient(circle at 10% 0%, #22c55e, #16a34a 60%, #166534 100%);
+      border-color: #4ade80;
+      color: #022c22;
+      box-shadow: 0 0 18px rgba(34, 197, 94, 0.7);
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
+      color: white;
+      box-shadow: 0 10px 20px rgba(37, 99, 235, 0.5);
+      transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, filter 0.08s ease-out;
+      white-space: nowrap;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 24px rgba(37, 99, 235, 0.6);
+      filter: brightness(1.05);
+    }
+
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 8px 14px rgba(37, 99, 235, 0.6);
+      filter: brightness(0.97);
+    }
+
+    .scoreboard {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    .scoreboard span strong {
+      color: #e5e7eb;
+    }
+
+    @media (max-width: 480px) {
+      .game-container {
+        padding: 18px 16px 20px;
+      }
+
+      .cell {
+        height: 80px;
+        width: 80px;
+        font-size: 36px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <h1>Tic Tac Toe</h1>
+    <div class="subtitle">You (X) vs Computer (O)</div>
+
+    <div class="scoreboard">
+      <span>You (X): <strong id="score-x">0</strong></span>
+      <span>Bot (O): <strong id="score-o">0</strong></span>
+      <span>Draws: <strong id="score-draws">0</strong></span>
+    </div>
+
+    <div id="status" class="status">Your turn: <strong>X</strong></div>
+
+    <div class="board" id="board">
+      <!-- 9 cells will be created by JS -->
+    </div>
+
+    <div class="controls">
+      <span>Tap a square to play.</span>
+      <button id="reset-btn">Reset board</button>
+    </div>
+  </div>
+
+  <script>
+    const boardElement = document.getElementById("board");
+    const statusElement = document.getElementById("status");
+    const resetBtn = document.getElementById("reset-btn");
+
+    const scoreXElement = document.getElementById("score-x");
+    const scoreOElement = document.getElementById("score-o");
+    const scoreDrawsElement = document.getElementById("score-draws");
+
+    let board = Array(9).fill(null); // cells 0–8
+    let currentPlayer = "X"; // You are X
+    let gameActive = true;
+    const isVsBot = true;
+
+    let scores = { X: 0, O: 0, draws: 0 };
+
+    const winningCombos = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6],
+    ];
+
+    function createBoard() {
+      boardElement.innerHTML = "";
+      for (let i = 0; i < 9; i++) {
+        const cell = document.createElement("div");
+        cell.classList.add("cell");
+        cell.dataset.index = i;
+        cell.addEventListener("click", handleCellClick);
+        boardElement.appendChild(cell);
+      }
+    }
+
+    function handleCellClick(e) {
+      const index = parseInt(e.target.dataset.index, 10);
+
+      if (!gameActive || board[index] !== null) return;
+
+      // In vs-bot mode, prevent the human from playing as O
+      if (isVsBot && currentPlayer === "O") return;
+
+      const ended = playMove(index, currentPlayer);
+      if (ended) return;
+
+      currentPlayer = currentPlayer === "X" ? "O" : "X";
+
+      if (isVsBot && currentPlayer === "O") {
+        statusElement.innerHTML = `Computer's turn...`;
+        setTimeout(() => {
+          if (!gameActive) return;
+          const botIndex = chooseBotMove();
+          if (botIndex == null) return;
+
+          const botEnded = playMove(botIndex, "O");
+          if (!botEnded) {
+            currentPlayer = "X";
+            statusElement.innerHTML = `Your turn: <strong>X</strong>`;
+          }
+        }, 400);
+      } else {
+        statusElement.innerHTML = `Current turn: <strong>${currentPlayer}</strong>`;
+      }
+    }
+
+    function playMove(index, player) {
+      board[index] = player;
+      const cell = document.querySelector(`.cell[data-index="${index}"]`);
+      cell.textContent = player;
+
+      const winInfo = checkWin();
+      if (winInfo) {
+        gameActive = false;
+        scores[player] += 1;
+        updateScores();
+        highlightWinningCells(winInfo.combo);
+        statusElement.innerHTML = player === "X"
+          ? `🎉 You win!`
+          : `🤖 Bot (<strong>${player}</strong>) wins!`;
+        disableRemainingCells();
+        return true;
+      }
+
+      if (board.every((cellVal) => cellVal !== null)) {
+        gameActive = false;
+        scores.draws += 1;
+        updateScores();
+        statusElement.innerHTML = "🤝 It's a draw!";
+        return true;
+      }
+
+      return false;
+    }
+
+    function checkWin() {
+      for (const combo of winningCombos) {
+        const [a, b, c] = combo;
+        if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+          return { player: board[a], combo };
+        }
+      }
+      return null;
+    }
+
+    function highlightWinningCells(combo) {
+      const cells = document.querySelectorAll(".cell");
+      combo.forEach((index) => {
+        cells[index].classList.add("win");
+      });
+    }
+
+    function disableRemainingCells() {
+      const cells = document.querySelectorAll(".cell");
+      cells.forEach((cell) => {
+        if (!cell.textContent) {
+          cell.classList.add("disabled");
+        }
+      });
+    }
+
+    function resetBoard() {
+      board = Array(9).fill(null);
+      currentPlayer = "X";
+      gameActive = true;
+      statusElement.innerHTML = `Your turn: <strong>X</strong>`;
+      const cells = document.querySelectorAll(".cell");
+      cells.forEach((cell) => {
+        cell.textContent = "";
+        cell.classList.remove("win", "disabled");
+      });
+    }
+
+    function updateScores() {
+      scoreXElement.textContent = scores.X;
+      scoreOElement.textContent = scores.O;
+      scoreDrawsElement.textContent = scores.draws;
+    }
+
+    // --- Bot logic (simple but decent) ---
+
+    function getAvailableMoves() {
+      const moves = [];
+      for (let i = 0; i < board.length; i++) {
+        if (board[i] === null) moves.push(i);
+      }
+      return moves;
+    }
+
+    function findWinningMove(player) {
+      const moves = getAvailableMoves();
+      for (const move of moves) {
+        board[move] = player;
+        const winInfo = checkWin();
+        board[move] = null; // undo
+        if (winInfo && winInfo.player === player) {
+          return move;
+        }
+      }
+      return null;
+    }
+
+    function chooseBotMove() {
+      // 1. If bot can win, do it
+      let move = findWinningMove("O");
+      if (move !== null) return move;
+
+      // 2. If player can win next, block it
+      move = findWinningMove("X");
+      if (move !== null) return move;
+
+      const available = getAvailableMoves();
+
+      // 3. Take center if free
+      if (available.includes(4)) return 4;
+
+      // 4. Take a corner if possible
+      const corners = [0, 2, 6, 8].filter((i) => available.includes(i));
+      if (corners.length > 0) {
+        return corners[Math.floor(Math.random() * corners.length)];
+      }
+
+      // 5. Otherwise, take any side
+      if (available.length > 0) {
+        return available[Math.floor(Math.random() * available.length)];
+      }
+
+      return null;
+    }
+
+    resetBtn.addEventListener("click", resetBoard);
+
+    // Initialize
+    createBoard();
+  </script>
+</body>
+</html>
