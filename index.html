@@ -50,7 +50,7 @@ body {
   border-radius: 8px;
 }
 
-/* ✅ Banner */
+/* ✅ Banner (kept, but not auto-triggered) */
 #announcement {
   position: fixed;
   top: 20px;
@@ -76,14 +76,14 @@ canvas {
 
 <body>
 
+<!-- ✅ Banner kept -->
 <div id="announcement">
-  Nick's last day in ABI will Be June 26. I will be joining the Supervisor Team in the Victoria Contact Center
+  Nick's last day in ABI will be June 26. I will be joining the Supervisor Team in the Victoria Contact Center
 </div>
 
 <canvas id="confetti"></canvas>
 
 <div class="game-container">
-
   <h2>Tic Tac Toe</h2>
 
   <!-- ✅ SCOREBOARD -->
@@ -103,14 +103,12 @@ canvas {
 <script>
 const boardEl = document.getElementById("board");
 const statusEl = document.getElementById("status");
-const announcement = document.getElementById("announcement");
 
 const scoreXEl = document.getElementById("score-x");
 const scoreOEl = document.getElementById("score-o");
 const scoreDEl = document.getElementById("score-d");
 
 let board = Array(9).fill(null);
-let current = "X";
 let gameActive = true;
 
 // ✅ Score tracking
@@ -126,7 +124,6 @@ const wins = [
 for (let i = 0; i < 9; i++) {
   const cell = document.createElement("div");
   cell.classList.add("cell");
-  cell.dataset.i = i;
   cell.onclick = () => handleMove(i);
   boardEl.appendChild(cell);
 }
@@ -137,58 +134,52 @@ function handleMove(i){
   play(i,"X");
   if (!gameActive) return;
 
-  setTimeout(()=>{
-    let move = chooseMove();
+  setTimeout(() => {
+    const move = chooseMove();
     play(move,"O");
   },300);
 }
 
-function play(i,player){
+function play(i, player){
   board[i] = player;
   boardEl.children[i].textContent = player;
 
-  let win = checkWin();
-
-  if (win){
+  if (checkWin()){
     gameActive = false;
 
     if (player === "X"){
       scores.X++;
-      updateScores();
-
-      // ✅ ONLY PLAYER
-      announcement.style.display = "block";
       statusEl.innerHTML = "🎉 YOU WIN!";
       startConfetti();
-
     } else {
       scores.O++;
-      updateScores();
       statusEl.innerHTML = "🤖 Bot wins!";
     }
 
+    updateScores();
     return;
   }
 
-  if (board.every(c=>c)){
+  if (board.every(c => c)){
     gameActive = false;
     scores.D++;
     updateScores();
     statusEl.innerHTML = "Draw!";
-    return;
   }
 }
 
 function checkWin(){
   return wins.some(([a,b,c]) =>
-    board[a] && board[a]===board[b] && board[a]===board[c]
+    board[a] && board[a] === board[b] && board[a] === board[c]
   );
 }
 
-// Bot
+// Bot (random)
 function chooseMove(){
-  let free = board.map((v,i)=>v?null:i).filter(v=>v!==null);
-  return free[Math.floor(Math.random()*free.length)];
+  const free = board
+    .map((v,i) => v ? null : i)
+    .filter(v => v !== null);
+  return free[Math.floor(Math.random() * free.length)];
 }
 
 // ✅ Update scoreboard
@@ -198,16 +189,14 @@ function updateScores(){
   scoreDEl.textContent = scores.D;
 }
 
-// Reset board only (keeps score)
+// ✅ Reset board (scores persist)
 function resetBoard(){
   board.fill(null);
   gameActive = true;
   statusEl.innerHTML = "Your turn";
-
-  announcement.style.display = "none";
   stopConfetti();
 
-  [...boardEl.children].forEach(c=>c.textContent="");
+  [...boardEl.children].forEach(c => c.textContent = "");
 }
 
 /* ✅ CONFETTI */
@@ -226,12 +215,12 @@ window.onresize = resize;
 
 function startConfetti(){
   active = true;
-  confetti = Array.from({length:120},()=>({
-    x: Math.random()*canvas.width,
-    y: Math.random()*canvas.height - canvas.height,
-    r: Math.random()*6+2,
-    d: Math.random()*5+2,
-    color: `hsl(${Math.random()*360},100%,50%)`
+  confetti = Array.from({length:120}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height - canvas.height,
+    r: Math.random() * 6 + 2,
+    d: Math.random() * 5 + 2,
+    color: `hsl(${Math.random() * 360},100%,50%)`
   }));
   animate();
 }
@@ -246,9 +235,9 @@ function animate(){
 
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  confetti.forEach(p=>{
+  confetti.forEach(p => {
     ctx.beginPath();
-    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
     ctx.fillStyle = p.color;
     ctx.fill();
 
