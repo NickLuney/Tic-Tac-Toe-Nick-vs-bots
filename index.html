@@ -21,14 +21,26 @@ body {
   padding: 20px;
   border-radius: 16px;
   text-align: center;
+  width: 320px;
 }
 
-/* ✅ SCOREBOARD */
 .scoreboard {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 10px;
   font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.controls {
+  margin: 10px 0;
+}
+
+select {
+  background: #111827;
+  color: white;
+  border: none;
+  padding: 6px;
+  border-radius: 6px;
 }
 
 .board {
@@ -42,15 +54,15 @@ body {
   width: 90px;
   height: 90px;
   font-size: 32px;
+  background: #111827;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #111827;
   cursor: pointer;
-  border-radius: 8px;
 }
 
-/* ✅ WIN BANNER */
+/* ✅ Win banner */
 #announcement {
   position: fixed;
   top: 20px;
@@ -65,7 +77,6 @@ body {
   z-index: 10;
 }
 
-/* ✅ Confetti canvas */
 canvas {
   position: fixed;
   top: 0;
@@ -77,7 +88,6 @@ canvas {
 
 <body>
 
-<!-- ✅ Banner (only shows on player win) -->
 <div id="announcement">
   Nick's last day in ABI will Be June 26. I will be joining the Supervisor Team in the Victoria Contact Center
 </div>
@@ -93,8 +103,16 @@ canvas {
     <div>Draws: <strong id="score-d">0</strong></div>
   </div>
 
-  <div id="status">Your turn</div>
+  <div class="controls">
+    Difficulty:
+    <select id="difficulty">
+      <option value="easy">Easy</option>
+      <option value="medium" selected>Medium</option>
+      <option value="hard">Impossible</option>
+    </select>
+  </div>
 
+  <div id="status">Your turn</div>
   <div class="board" id="board"></div>
 
   <button onclick="resetBoard()">Reset Board</button>
@@ -104,6 +122,7 @@ canvas {
 const boardEl = document.getElementById("board");
 const statusEl = document.getElementById("status");
 const banner = document.getElementById("announcement");
+const difficultyEl = document.getElementById("difficulty");
 
 const scoreXEl = document.getElementById("score-x");
 const scoreOEl = document.getElementById("score-o");
@@ -111,7 +130,6 @@ const scoreDEl = document.getElementById("score-d");
 
 let board = Array(9).fill(null);
 let gameActive = true;
-
 let scores = { X: 0, O: 0, D: 0 };
 
 const wins = [
@@ -123,7 +141,7 @@ const wins = [
 // Build board
 for (let i = 0; i < 9; i++) {
   const cell = document.createElement("div");
-  cell.classList.add("cell");
+  cell.className = "cell";
   cell.onclick = () => handleMove(i);
   boardEl.appendChild(cell);
 }
@@ -135,8 +153,7 @@ function handleMove(i){
   if (!gameActive) return;
 
   setTimeout(() => {
-    const move = bestMove();
-    play(move, "O");
+    play(getBotMove(), "O");
   }, 300);
 }
 
@@ -156,7 +173,6 @@ function play(i, player){
       scores.O++;
       statusEl.textContent = "🤖 Bot wins!";
     }
-
     updateScores();
     return;
   }
@@ -169,114 +185,149 @@ function play(i, player){
   }
 }
 
-/* ✅ WIN CHECK */
 function checkWin(b, p){
-  return wins.some(([a,b1,c]) =>
-    b[a] === p && b[b1] === p && b[c] === p
-  );
+  return wins.some(([a,b1,c]) => b[a]===p && b[b1]===p && b[c]===p);
 }
 
-/* ✅ UNBEATABLE BOT (MINIMAX) */
-function bestMove(){
+/* 🤖 BOT LOGIC */
+function getBotMove(){
+  const level = difficultyEl.value;
+
+  if (level === "easy") return randomMove();
+
+  if (level === "medium"){
+    return Math.random() < 0.7 ? smartMove() : randomMove();
+  }
+
+  return minimaxMove(); // impossible
+}
+
+function randomMove(){
+  const free = board.map((v,i)=>v?null:i).filter(v=>v!==null);
+  return free[Math.floor(Math.random()*free.length)];
+}
+
+function smartMove(){
+  // win or block
+  for (let p of ["O","X"]){
+    for (let i=0;i<9;i++){
+      if (!board[i]){
+        board[i]=p;
+        if (checkWin(board,p)){
+          board[i]=null;
+          return i;
+        }
+        board[i]=null;
+      }
+    }
+  }
+  return randomMove();
+}
+
+/* ✅ MINIMAX (IMPOSSIBLE) */
+function minimaxMove(){
   let bestScore = -Infinity;
   let move;
 
-  board.forEach((cell, i) => {
-    if (!cell){
-      board[i] = "O";
-      let score = minimax(board, 0, false);
-      board[i] = null;
-      if (score > bestScore){
-        bestScore = score;
-        move = i;
+  board.forEach((c,i)=>{
+    if (!c){
+      board[i]="O";
+      let score = minimax(board,0,false);
+      board[i]=null;
+      if (score>bestScore){
+        bestScore=score;
+        move=i;
       }
     }
   });
-
   return move;
 }
 
 function minimax(b, depth, isMax){
-  if (checkWin(b, "O")) return 10 - depth;
-  if (checkWin(b, "X")) return depth - 10;
-  if (b.every(c => c)) return 0;
+  if (checkWin(b,"O")) return 10-depth;
+  if (checkWin(b,"X")) return depth-10;
+  if (b.every(c=>c)) return 0;
 
   if (isMax){
-    let best = -Infinity;
-    b.forEach((c, i) => {
+    return Math.max(...b.map((c,i)=>{
       if (!c){
-        b[i] = "O";
-        best = Math.max(best, minimax(b, depth + 1, false));
-        b[i] = null;
+        b[i]="O";
+        let v=minimax(b,depth+1,false);
+        b[i]=null;
+        return v;
       }
-    });
-    return best;
+      return -Infinity;
+    }));
   } else {
-    let best = Infinity;
-    b.forEach((c, i) => {
+    return Math.min(...b.map((c,i)=>{
       if (!c){
-        b[i] = "X";
-        best = Math.min(best, minimax(b, depth + 1, true));
-        b[i] = null;
+        b[i]="X";
+        let v=minimax(b,depth+1,true);
+        b[i]=null;
+        return v;
       }
-    });
-    return best;
+      return Infinity;
+    }));
   }
 }
 
-/* ✅ SCORE UPDATE */
 function updateScores(){
   scoreXEl.textContent = scores.X;
   scoreOEl.textContent = scores.O;
   scoreDEl.textContent = scores.D;
 }
 
-/* ✅ RESET (keeps scores) */
 function resetBoard(){
   board.fill(null);
   gameActive = true;
   statusEl.textContent = "Your turn";
   banner.style.display = "none";
   stopConfetti();
-
-  [...boardEl.children].forEach(c => c.textContent = "");
+  [...boardEl.children].forEach(c=>c.textContent="");
 }
 
-/* ✅ CONFETTI */
+/* 🎉 CONFETTI */
 const canvas = document.getElementById("confetti");
 const ctx = canvas.getContext("2d");
-
-let confetti = [];
-let active = false;
+let confetti=[], active=false;
 
 function resize(){
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  canvas.width=innerWidth;
+  canvas.height=innerHeight;
 }
-resize();
-window.onresize = resize;
+resize(); onresize=resize;
 
 function startConfetti(){
-  active = true;
-  confetti = Array.from({length:120}, () => ({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height - canvas.height,
-    r: Math.random() * 6 + 2,
-    d: Math.random() * 5 + 2,
-    color: `hsl(${Math.random()*360},100%,50%)`
+  active=true;
+  confetti=Array.from({length:120},()=>({
+    x:Math.random()*canvas.width,
+    y:Math.random()*canvas.height-canvas.height,
+    r:Math.random()*6+2,
+    d:Math.random()*5+2,
+    c:`hsl(${Math.random()*360},100%,50%)`
   }));
   animate();
 }
 
 function stopConfetti(){
-  active = false;
+  active=false;
   ctx.clearRect(0,0,canvas.width,canvas.height);
 }
 
 function animate(){
-  if (!active) return;
-
+  if(!active)return;
   ctx.clearRect(0,0,canvas.width,canvas.height);
+  confetti.forEach(p=>{
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle=p.c;
+    ctx.fill();
+    p.y+=p.d;
+    if(p.y>canvas.height)p.y=-10;
+  });
+  requestAnimationFrame(animate);
+}
+</script>
 
-  confetti.forEach(p => {
-
+</body>
+</html>
