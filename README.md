@@ -177,203 +177,213 @@
     </div>
   </div>
 
+<div id="announcement" style="
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #22c55e;
+  color: #022c22;
+  padding: 15px 20px;
+  border-radius: 10px;
+  font-weight: bold;
+  display: none;
+  z-index: 1000;
+">
+  Nick's last day in ABI will Be June 26. I will be joining the Supervisor Team in the Victoria Contact Center
+</div>
+
   <script>
-    const boardElement = document.getElementById("board");
-    const statusElement = document.getElementById("status");
-    const resetBtn = document.getElementById("reset-btn");
+const boardElement = document.getElementById("board");
+const statusElement = document.getElementById("status");
+const resetBtn = document.getElementById("reset-btn");
+const scoreXElement = document.getElementById("score-x");
+const scoreOElement = document.getElementById("score-o");
+const scoreDrawsElement = document.getElementById("score-draws");
 
-    const scoreXElement = document.getElementById("score-x");
-    const scoreOElement = document.getElementById("score-o");
-    const scoreDrawsElement = document.getElementById("score-draws");
+// ✅ Add banner reference
+const announcement = document.getElementById("announcement");
 
-    let board = Array(9).fill(null); // cells 0–8
-    let currentPlayer = "X"; // You are X
-    let gameActive = true;
-    const isVsBot = true;
+let board = Array(9).fill(null);
+let currentPlayer = "X";
+let gameActive = true;
+const isVsBot = true;
 
-    let scores = { X: 0, O: 0, draws: 0 };
+let scores = { X: 0, O: 0, draws: 0 };
 
-    const winningCombos = [
-      [0, 1, 2],
-      [3, 4, 5],
-      [6, 7, 8],
-      [0, 3, 6],
-      [1, 4, 7],
-      [2, 5, 8],
-      [0, 4, 8],
-      [2, 4, 6],
-    ];
+const winningCombos = [
+  [0, 1, 2],[3, 4, 5],[6, 7, 8],
+  [0, 3, 6],[1, 4, 7],[2, 5, 8],
+  [0, 4, 8],[2, 4, 6],
+];
 
-    function createBoard() {
-      boardElement.innerHTML = "";
-      for (let i = 0; i < 9; i++) {
-        const cell = document.createElement("div");
-        cell.classList.add("cell");
-        cell.dataset.index = i;
-        cell.addEventListener("click", handleCellClick);
-        boardElement.appendChild(cell);
+function createBoard() {
+  boardElement.innerHTML = "";
+  for (let i = 0; i < 9; i++) {
+    const cell = document.createElement("div");
+    cell.classList.add("cell");
+    cell.dataset.index = i;
+    cell.addEventListener("click", handleCellClick);
+    boardElement.appendChild(cell);
+  }
+}
+
+function handleCellClick(e) {
+  const index = parseInt(e.target.dataset.index, 10);
+  if (!gameActive || board[index] !== null) return;
+  if (isVsBot && currentPlayer === "O") return;
+
+  const ended = playMove(index, currentPlayer);
+  if (ended) return;
+
+  currentPlayer = currentPlayer === "X" ? "O" : "X";
+
+  if (isVsBot && currentPlayer === "O") {
+    statusElement.innerHTML = `Computer's turn...`;
+
+    setTimeout(() => {
+      if (!gameActive) return;
+      const botIndex = chooseBotMove();
+      if (botIndex == null) return;
+
+      const botEnded = playMove(botIndex, "O");
+
+      if (!botEnded) {
+        currentPlayer = "X";
+        statusElement.innerHTML = `Your turn: X `;
       }
+    }, 400);
+  } else {
+    statusElement.innerHTML = `Current turn: ${currentPlayer}`;
+  }
+}
+
+function playMove(index, player) {
+  board[index] = player;
+
+  const cell = document.querySelector(`.cell[data-index="${index}"]`);
+  cell.textContent = player;
+
+  const winInfo = checkWin();
+
+  if (winInfo) {
+    gameActive = false;
+    scores[player] += 1;
+    updateScores();
+    highlightWinningCells(winInfo.combo);
+
+    // ✅ SHOW POPUP
+    alert("Nick's last day in ABI will Be June 26. I will be joining the Supervisor Team in the Victoria Contact Center");
+
+    // ✅ SHOW BANNER
+    announcement.style.display = "block";
+
+    // ✅ UPDATE TEXT
+    statusElement.innerHTML =
+      "Nick's last day in ABI will Be June 26. I will be joining the Supervisor Team in the Victoria Contact Center";
+
+    disableRemainingCells();
+    return true;
+  }
+
+  if (board.every((cellVal) => cellVal !== null)) {
+    gameActive = false;
+    scores.draws += 1;
+    updateScores();
+    statusElement.innerHTML = "🤝 It's a draw!";
+    return true;
+  }
+
+  return false;
+}
+
+function checkWin() {
+  for (const combo of winningCombos) {
+    const [a, b, c] = combo;
+    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+      return { player: board[a], combo };
     }
+  }
+  return null;
+}
 
-    function handleCellClick(e) {
-      const index = parseInt(e.target.dataset.index, 10);
+function highlightWinningCells(combo) {
+  const cells = document.querySelectorAll(".cell");
+  combo.forEach((index) => {
+    cells[index].classList.add("win");
+  });
+}
 
-      if (!gameActive || board[index] !== null) return;
-
-      // In vs-bot mode, prevent the human from playing as O
-      if (isVsBot && currentPlayer === "O") return;
-
-      const ended = playMove(index, currentPlayer);
-      if (ended) return;
-
-      currentPlayer = currentPlayer === "X" ? "O" : "X";
-
-      if (isVsBot && currentPlayer === "O") {
-        statusElement.innerHTML = `Computer's turn...`;
-        setTimeout(() => {
-          if (!gameActive) return;
-          const botIndex = chooseBotMove();
-          if (botIndex == null) return;
-
-          const botEnded = playMove(botIndex, "O");
-          if (!botEnded) {
-            currentPlayer = "X";
-            statusElement.innerHTML = `Your turn: <strong>X</strong>`;
-          }
-        }, 400);
-      } else {
-        statusElement.innerHTML = `Current turn: <strong>${currentPlayer}</strong>`;
-      }
+function disableRemainingCells() {
+  const cells = document.querySelectorAll(".cell");
+  cells.forEach((cell) => {
+    if (!cell.textContent) {
+      cell.classList.add("disabled");
     }
+  });
+}
 
-    function playMove(index, player) {
-      board[index] = player;
-      const cell = document.querySelector(`.cell[data-index="${index}"]`);
-      cell.textContent = player;
+function resetBoard() {
+  board = Array(9).fill(null);
+  currentPlayer = "X";
+  gameActive = true;
+  statusElement.innerHTML = `Your turn: X`;
 
-      const winInfo = checkWin();
-      if (winInfo) {
-        gameActive = false;
-        scores[player] += 1;
-        updateScores();
-        highlightWinningCells(winInfo.combo);
-        statusElement.innerHTML = player === "X"
-          ? `🎉 You win!`
-          : `🤖 Bot (<strong>${player}</strong>) wins!`;
-        disableRemainingCells();
-        return true;
-      }
+  // ✅ HIDE BANNER ON RESET
+  announcement.style.display = "none";
 
-      if (board.every((cellVal) => cellVal !== null)) {
-        gameActive = false;
-        scores.draws += 1;
-        updateScores();
-        statusElement.innerHTML = "🤝 It's a draw!";
-        return true;
-      }
+  const cells = document.querySelectorAll(".cell");
+  cells.forEach((cell) => {
+    cell.textContent = "";
+    cell.classList.remove("win", "disabled");
+  });
+}
 
-      return false;
-    }
+function updateScores() {
+  scoreXElement.textContent = scores.X;
+  scoreOElement.textContent = scores.O;
+  scoreDrawsElement.textContent = scores.draws;
+}
 
-    function checkWin() {
-      for (const combo of winningCombos) {
-        const [a, b, c] = combo;
-        if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-          return { player: board[a], combo };
-        }
-      }
-      return null;
-    }
+// --- BOT LOGIC ---
+function getAvailableMoves() {
+  return board.map((v, i) => (v === null ? i : null)).filter(v => v !== null);
+}
 
-    function highlightWinningCells(combo) {
-      const cells = document.querySelectorAll(".cell");
-      combo.forEach((index) => {
-        cells[index].classList.add("win");
-      });
-    }
+function findWinningMove(player) {
+  const moves = getAvailableMoves();
+  for (const move of moves) {
+    board[move] = player;
+    const winInfo = checkWin();
+    board[move] = null;
+    if (winInfo && winInfo.player === player) return move;
+  }
+  return null;
+}
 
-    function disableRemainingCells() {
-      const cells = document.querySelectorAll(".cell");
-      cells.forEach((cell) => {
-        if (!cell.textContent) {
-          cell.classList.add("disabled");
-        }
-      });
-    }
+function chooseBotMove() {
+  let move = findWinningMove("O");
+  if (move !== null) return move;
 
-    function resetBoard() {
-      board = Array(9).fill(null);
-      currentPlayer = "X";
-      gameActive = true;
-      statusElement.innerHTML = `Your turn: <strong>X</strong>`;
-      const cells = document.querySelectorAll(".cell");
-      cells.forEach((cell) => {
-        cell.textContent = "";
-        cell.classList.remove("win", "disabled");
-      });
-    }
+  move = findWinningMove("X");
+  if (move !== null) return move;
 
-    function updateScores() {
-      scoreXElement.textContent = scores.X;
-      scoreOElement.textContent = scores.O;
-      scoreDrawsElement.textContent = scores.draws;
-    }
+  const available = getAvailableMoves();
 
-    // --- Bot logic (simple but decent) ---
+  if (available.includes(4)) return 4;
 
-    function getAvailableMoves() {
-      const moves = [];
-      for (let i = 0; i < board.length; i++) {
-        if (board[i] === null) moves.push(i);
-      }
-      return moves;
-    }
+  const corners = [0, 2, 6, 8].filter(i => available.includes(i));
+  if (corners.length > 0) {
+    return corners[Math.floor(Math.random() * corners.length)];
+  }
 
-    function findWinningMove(player) {
-      const moves = getAvailableMoves();
-      for (const move of moves) {
-        board[move] = player;
-        const winInfo = checkWin();
-        board[move] = null; // undo
-        if (winInfo && winInfo.player === player) {
-          return move;
-        }
-      }
-      return null;
-    }
+  if (available.length > 0) {
+    return available[Math.floor(Math.random() * available.length)];
+  }
 
-    function chooseBotMove() {
-      // 1. If bot can win, do it
-      let move = findWinningMove("O");
-      if (move !== null) return move;
+  return null;
+}
 
-      // 2. If player can win next, block it
-      move = findWinningMove("X");
-      if (move !== null) return move;
-
-      const available = getAvailableMoves();
-
-      // 3. Take center if free
-      if (available.includes(4)) return 4;
-
-      // 4. Take a corner if possible
-      const corners = [0, 2, 6, 8].filter((i) => available.includes(i));
-      if (corners.length > 0) {
-        return corners[Math.floor(Math.random() * corners.length)];
-      }
-
-      // 5. Otherwise, take any side
-      if (available.length > 0) {
-        return available[Math.floor(Math.random() * available.length)];
-      }
-
-      return null;
-    }
-
-    resetBtn.addEventListener("click", resetBoard);
-
-    // Initialize
-    createBoard();
-  </script>
-</body>
-</html>
+resetBtn.addEventListener("click", resetBoard);
+createBoard();
+</script>
