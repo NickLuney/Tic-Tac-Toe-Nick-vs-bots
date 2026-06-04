@@ -1,183 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Tic Tac Toe – Vs Bot</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
+<meta charset="UTF-8">
+<title>Tic Tac Toe – Vs Bot</title>
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #0f172a;
-      color: #e5e7eb;
-    }
+<style>
+body {
+  font-family: system-ui;
+  background: #0f172a;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
 
-    .game-container {
-      background: #020617;
-      padding: 24px 28px 28px;
-      border-radius: 20px;
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
-      width: 320px;
-      max-width: 90vw;
-    }
+.game-container {
+  background: #020617;
+  padding: 20px;
+  border-radius: 16px;
+  text-align: center;
+}
 
-    h1 {
-      margin: 0 0 8px;
-      font-size: 24px;
-      text-align: center;
-      letter-spacing: 0.04em;
-    }
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin: 15px 0;
+}
 
-    .subtitle {
-      text-align: center;
-      margin-bottom: 18px;
-      font-size: 13px;
-      color: #9ca3af;
-    }
+.cell {
+  width: 90px;
+  height: 90px;
+  font-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #111827;
+  cursor: pointer;
+  border-radius: 8px;
+}
 
-    .status {
-      text-align: center;
-      margin-bottom: 16px;
-      font-size: 15px;
-      font-weight: 500;
-      min-height: 1.5em;
-    }
-
-    .board {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-      margin-bottom: 18px;
-    }
-
-    .cell {
-      width: 90px;
-      height: 90px;
-      max-width: 26vw;
-      max-height: 26vw;
-      border-radius: 12px;
-      border: 1px solid #1f2937;
-      background: radial-gradient(circle at 10% 0%, #020617, #020617 55%, #030712 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 40px;
-      font-weight: 700;
-      cursor: pointer;
-      user-select: none;
-      transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, background 0.15s ease-out;
-    }
-
-    .cell:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 16px rgba(15, 23, 42, 0.8);
-    }
-
-    .cell.disabled {
-      cursor: default;
-      opacity: 0.85;
-      transform: none;
-      box-shadow: none;
-    }
-
-    .cell.win {
-      background: radial-gradient(circle at 10% 0%, #22c55e, #16a34a 60%, #166534 100%);
-      border-color: #4ade80;
-      color: #022c22;
-      box-shadow: 0 0 18px rgba(34, 197, 94, 0.7);
-    }
-
-    .controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      font-size: 13px;
-      color: #9ca3af;
-    }
-
-    button {
-      border: none;
-      border-radius: 999px;
-      padding: 8px 14px;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      background: linear-gradient(135deg, #3b82f6, #6366f1);
-      color: white;
-      box-shadow: 0 10px 20px rgba(37, 99, 235, 0.5);
-      transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, filter 0.08s ease-out;
-      white-space: nowrap;
-    }
-
-    button:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 14px 24px rgba(37, 99, 235, 0.6);
-      filter: brightness(1.05);
-    }
-
-    button:active {
-      transform: translateY(0);
-      box-shadow: 0 8px 14px rgba(37, 99, 235, 0.6);
-      filter: brightness(0.97);
-    }
-
-    .scoreboard {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 10px;
-      font-size: 13px;
-      color: #9ca3af;
-    }
-
-    .scoreboard span strong {
-      color: #e5e7eb;
-    }
-
-    @media (max-width: 480px) {
-      .game-container {
-        padding: 18px 16px 20px;
-      }
-
-      .cell {
-        height: 80px;
-        width: 80px;
-        font-size: 36px;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="game-container">
-    <h1>Tic Tac Toe</h1>
-    <div class="subtitle">You (X) vs Computer (O)</div>
-
-    <div class="scoreboard">
-      <span>You (X): <strong id="score-x">0</strong></span>
-      <span>Bot (O): <strong id="score-o">0</strong></span>
-      <span>Draws: <strong id="score-draws">0</strong></span>
-    </div>
-
-    <div id="status" class="status">Your turn: <strong>X</strong></div>
-
-    <div class="board" id="board">
-      <!-- 9 cells will be created by JS -->
-    </div>
-
-    <div class="controls">
-      <span>Tap a square to play.</span>
-      <button id="reset-btn">Reset board</button>
-    </div>
-  </div>
-
-<div id="announcement" style="
+/* ✅ Banner */
+#announcement {
   position: fixed;
   top: 20px;
   left: 50%;
@@ -188,203 +54,170 @@
   border-radius: 10px;
   font-weight: bold;
   display: none;
-  z-index: 1000;
-">
+}
+
+/* ✅ Confetti canvas */
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+</style>
+</head>
+
+<body>
+
+<div id="announcement">
   Nick's last day in ABI will Be June 26. I will be joining the Supervisor Team in the Victoria Contact Center
 </div>
 
-  <script>
-const boardElement = document.getElementById("board");
-const statusElement = document.getElementById("status");
-const resetBtn = document.getElementById("reset-btn");
-const scoreXElement = document.getElementById("score-x");
-const scoreOElement = document.getElementById("score-o");
-const scoreDrawsElement = document.getElementById("score-draws");
+<canvas id="confetti"></canvas>
 
-// ✅ Add banner reference
+<div class="game-container">
+  <h2>Tic Tac Toe</h2>
+  <div id="status">Your turn</div>
+  <div class="board" id="board"></div>
+  <button onclick="resetBoard()">Reset</button>
+</div>
+
+<script>
+const boardEl = document.getElementById("board");
+const statusEl = document.getElementById("status");
 const announcement = document.getElementById("announcement");
 
 let board = Array(9).fill(null);
-let currentPlayer = "X";
+let current = "X";
 let gameActive = true;
-const isVsBot = true;
 
-let scores = { X: 0, O: 0, draws: 0 };
-
-const winningCombos = [
-  [0, 1, 2],[3, 4, 5],[6, 7, 8],
-  [0, 3, 6],[1, 4, 7],[2, 5, 8],
-  [0, 4, 8],[2, 4, 6],
+const wins = [
+  [0,1,2],[3,4,5],[6,7,8],
+  [0,3,6],[1,4,7],[2,5,8],
+  [0,4,8],[2,4,6]
 ];
 
-function createBoard() {
-  boardElement.innerHTML = "";
-  for (let i = 0; i < 9; i++) {
-    const cell = document.createElement("div");
-    cell.classList.add("cell");
-    cell.dataset.index = i;
-    cell.addEventListener("click", handleCellClick);
-    boardElement.appendChild(cell);
-  }
+// ✅ Build board
+for (let i = 0; i < 9; i++) {
+  const cell = document.createElement("div");
+  cell.classList.add("cell");
+  cell.dataset.i = i;
+  cell.onclick = () => handleMove(i);
+  boardEl.appendChild(cell);
 }
 
-function handleCellClick(e) {
-  const index = parseInt(e.target.dataset.index, 10);
-  if (!gameActive || board[index] !== null) return;
-  if (isVsBot && currentPlayer === "O") return;
+function handleMove(i){
+  if (!gameActive || board[i]) return;
 
-  const ended = playMove(index, currentPlayer);
-  if (ended) return;
+  play(i,"X");
+  if (!gameActive) return;
 
-  currentPlayer = currentPlayer === "X" ? "O" : "X";
-
-  if (isVsBot && currentPlayer === "O") {
-    statusElement.innerHTML = `Computer's turn...`;
-
-    setTimeout(() => {
-      if (!gameActive) return;
-      const botIndex = chooseBotMove();
-      if (botIndex == null) return;
-
-      const botEnded = playMove(botIndex, "O");
-
-      if (!botEnded) {
-        currentPlayer = "X";
-        statusElement.innerHTML = `Your turn: X `;
-      }
-    }, 400);
-  } else {
-    statusElement.innerHTML = `Current turn: ${currentPlayer}`;
-  }
+  setTimeout(()=>{
+    let move = chooseMove();
+    play(move,"O");
+  },300);
 }
 
-function playMove(index, player) {
-  board[index] = player;
+function play(i,player){
+  board[i] = player;
+  boardEl.children[i].textContent = player;
 
-  const cell = document.querySelector(`.cell[data-index="${index}"]`);
-  cell.textContent = player;
+  let win = checkWin();
 
-  const winInfo = checkWin();
-
-  if (winInfo) {
+  if (win){
     gameActive = false;
-    scores[player] += 1;
-    updateScores();
-    highlightWinningCells(winInfo.combo);
 
-    // ✅ SHOW POPUP
-    alert("Nick's last day in ABI will Be June 26. I will be joining the Supervisor Team in the Victoria Contact Center");
+    if (player === "X"){
+      // ✅ ONLY PLAYER GETS THIS
+      alert("Nick's last day in ABI will Be June 26. I will be joining the Supervisor Team in the Victoria Contact Center");
+      announcement.style.display = "block";
+      statusEl.innerHTML = "🎉 YOU WIN!";
+      startConfetti();
+    } else {
+      statusEl.innerHTML = "🤖 Bot wins!";
+    }
 
-    // ✅ SHOW BANNER
-    announcement.style.display = "block";
-
-    // ✅ UPDATE TEXT
-    statusElement.innerHTML =
-      "Nick's last day in ABI will Be June 26. I will be joining the Supervisor Team in the Victoria Contact Center";
-
-    disableRemainingCells();
-    return true;
+    return;
   }
 
-  if (board.every((cellVal) => cellVal !== null)) {
+  if (board.every(c=>c)){
     gameActive = false;
-    scores.draws += 1;
-    updateScores();
-    statusElement.innerHTML = "🤝 It's a draw!";
-    return true;
+    statusEl.innerHTML = "Draw!";
+    return;
   }
-
-  return false;
 }
 
-function checkWin() {
-  for (const combo of winningCombos) {
-    const [a, b, c] = combo;
-    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-      return { player: board[a], combo };
-    }
-  }
-  return null;
+function checkWin(){
+  return wins.some(([a,b,c]) =>
+    board[a] && board[a]===board[b] && board[a]===board[c]
+  );
 }
 
-function highlightWinningCells(combo) {
-  const cells = document.querySelectorAll(".cell");
-  combo.forEach((index) => {
-    cells[index].classList.add("win");
-  });
+// ✅ Simple bot
+function chooseMove(){
+  let free = board.map((v,i)=>v?null:i).filter(v=>v!==null);
+  return free[Math.floor(Math.random()*free.length)];
 }
 
-function disableRemainingCells() {
-  const cells = document.querySelectorAll(".cell");
-  cells.forEach((cell) => {
-    if (!cell.textContent) {
-      cell.classList.add("disabled");
-    }
-  });
-}
-
-function resetBoard() {
-  board = Array(9).fill(null);
-  currentPlayer = "X";
+// ✅ Reset
+function resetBoard(){
+  board.fill(null);
   gameActive = true;
-  statusElement.innerHTML = `Your turn: X`;
-
-  // ✅ HIDE BANNER ON RESET
+  statusEl.innerHTML = "Your turn";
   announcement.style.display = "none";
+  stopConfetti();
 
-  const cells = document.querySelectorAll(".cell");
-  cells.forEach((cell) => {
-    cell.textContent = "";
-    cell.classList.remove("win", "disabled");
+  [...boardEl.children].forEach(c=>c.textContent="");
+}
+
+/* ✅ CONFETTI SYSTEM */
+const canvas = document.getElementById("confetti");
+const ctx = canvas.getContext("2d");
+
+let confetti = [];
+let confettiActive = false;
+
+function resizeCanvas(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.onresize = resizeCanvas;
+resizeCanvas();
+
+function startConfetti(){
+  confettiActive = true;
+  confetti = Array.from({length:150},()=>({
+    x: Math.random()*canvas.width,
+    y: Math.random()*canvas.height - canvas.height,
+    r: Math.random()*6+2,
+    d: Math.random()*5+2,
+    color: `hsl(${Math.random()*360},100%,50%)`
+  }));
+  animateConfetti();
+}
+
+function stopConfetti(){
+  confettiActive = false;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+}
+
+function animateConfetti(){
+  if (!confettiActive) return;
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  confetti.forEach(p=>{
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle = p.color;
+    ctx.fill();
+
+    p.y += p.d;
+    if (p.y > canvas.height) p.y = -10;
   });
+
+  requestAnimationFrame(animateConfetti);
 }
-
-function updateScores() {
-  scoreXElement.textContent = scores.X;
-  scoreOElement.textContent = scores.O;
-  scoreDrawsElement.textContent = scores.draws;
-}
-
-// --- BOT LOGIC ---
-function getAvailableMoves() {
-  return board.map((v, i) => (v === null ? i : null)).filter(v => v !== null);
-}
-
-function findWinningMove(player) {
-  const moves = getAvailableMoves();
-  for (const move of moves) {
-    board[move] = player;
-    const winInfo = checkWin();
-    board[move] = null;
-    if (winInfo && winInfo.player === player) return move;
-  }
-  return null;
-}
-
-function chooseBotMove() {
-  let move = findWinningMove("O");
-  if (move !== null) return move;
-
-  move = findWinningMove("X");
-  if (move !== null) return move;
-
-  const available = getAvailableMoves();
-
-  if (available.includes(4)) return 4;
-
-  const corners = [0, 2, 6, 8].filter(i => available.includes(i));
-  if (corners.length > 0) {
-    return corners[Math.floor(Math.random() * corners.length)];
-  }
-
-  if (available.length > 0) {
-    return available[Math.floor(Math.random() * available.length)];
-  }
-
-  return null;
-}
-
-resetBtn.addEventListener("click", resetBoard);
-createBoard();
 </script>
 
+</body>
+</html>
