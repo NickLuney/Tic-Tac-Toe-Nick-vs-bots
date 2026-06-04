@@ -1,183 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Tic Tac Toe – Vs Bot</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
+<meta charset="UTF-8">
+<title>Tic Tac Toe – Vs Bot</title>
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #0f172a;
-      color: #e5e7eb;
-    }
+<style>
+body {
+  font-family: system-ui;
+  background: #0f172a;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
 
-    .game-container {
-      background: #020617;
-      padding: 24px 28px 28px;
-      border-radius: 20px;
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
-      width: 320px;
-      max-width: 90vw;
-    }
+.game-container {
+  background: #020617;
+  padding: 20px;
+  border-radius: 16px;
+  text-align: center;
+  width: 320px;
+}
 
-    h1 {
-      margin: 0 0 8px;
-      font-size: 24px;
-      text-align: center;
-      letter-spacing: 0.04em;
-    }
+.scoreboard {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
 
-    .subtitle {
-      text-align: center;
-      margin-bottom: 18px;
-      font-size: 13px;
-      color: #9ca3af;
-    }
+.controls {
+  margin: 10px 0;
+}
 
-    .status {
-      text-align: center;
-      margin-bottom: 16px;
-      font-size: 15px;
-      font-weight: 500;
-      min-height: 1.5em;
-    }
+select {
+  background: #111827;
+  color: white;
+  border: none;
+  padding: 6px;
+  border-radius: 6px;
+}
 
-    .board {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-      margin-bottom: 18px;
-    }
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin: 15px 0;
+}
 
-    .cell {
-      width: 90px;
-      height: 90px;
-      max-width: 26vw;
-      max-height: 26vw;
-      border-radius: 12px;
-      border: 1px solid #1f2937;
-      background: radial-gradient(circle at 10% 0%, #020617, #020617 55%, #030712 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 40px;
-      font-weight: 700;
-      cursor: pointer;
-      user-select: none;
-      transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, background 0.15s ease-out;
-    }
+.cell {
+  width: 90px;
+  height: 90px;
+  font-size: 32px;
+  background: #111827;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
 
-    .cell:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 16px rgba(15, 23, 42, 0.8);
-    }
-
-    .cell.disabled {
-      cursor: default;
-      opacity: 0.85;
-      transform: none;
-      box-shadow: none;
-    }
-
-    .cell.win {
-      background: radial-gradient(circle at 10% 0%, #22c55e, #16a34a 60%, #166534 100%);
-      border-color: #4ade80;
-      color: #022c22;
-      box-shadow: 0 0 18px rgba(34, 197, 94, 0.7);
-    }
-
-    .controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      font-size: 13px;
-      color: #9ca3af;
-    }
-
-    button {
-      border: none;
-      border-radius: 999px;
-      padding: 8px 14px;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      background: linear-gradient(135deg, #3b82f6, #6366f1);
-      color: white;
-      box-shadow: 0 10px 20px rgba(37, 99, 235, 0.5);
-      transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, filter 0.08s ease-out;
-      white-space: nowrap;
-    }
-
-    button:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 14px 24px rgba(37, 99, 235, 0.6);
-      filter: brightness(1.05);
-    }
-
-    button:active {
-      transform: translateY(0);
-      box-shadow: 0 8px 14px rgba(37, 99, 235, 0.6);
-      filter: brightness(0.97);
-    }
-
-    .scoreboard {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 10px;
-      font-size: 13px;
-      color: #9ca3af;
-    }
-
-    .scoreboard span strong {
-      color: #e5e7eb;
-    }
-
-    @media (max-width: 480px) {
-      .game-container {
-        padding: 18px 16px 20px;
-      }
-
-      .cell {
-        height: 80px;
-        width: 80px;
-        font-size: 36px;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="game-container">
-    <h1>Tic Tac Toe</h1>
-    <div class="subtitle">You (X) vs Computer (O)</div>
-
-    <div class="scoreboard">
-      <span>You (X): <strong id="score-x">0</strong></span>
-      <span>Bot (O): <strong id="score-o">0</strong></span>
-      <span>Draws: <strong id="score-draws">0</strong></span>
-    </div>
-
-    <div id="status" class="status">Your turn: <strong>X</strong></div>
-
-    <div class="board" id="board">
-      <!-- 9 cells will be created by JS -->
-    </div>
-
-    <div class="controls">
-      <span>Tap a square to play.</span>
-      <button id="reset-btn">Reset board</button>
-    </div>
-  </div>
-
-<div id="announcement" style="
+/* ✅ Win banner */
+#announcement {
   position: fixed;
   top: 20px;
   left: 50%;
@@ -188,202 +74,261 @@
   border-radius: 10px;
   font-weight: bold;
   display: none;
-  z-index: 1000;
-">
+  z-index: 10;
+}
+
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+</style>
+</head>
+
+<body>
+
+<div id="announcement">
   Nick's last day in ABI will Be June 26. I will be joining the Supervisor Team in the Victoria Contact Center
 </div>
 
-  <script>
-const boardElement = document.getElementById("board");
-const statusElement = document.getElementById("status");
-const resetBtn = document.getElementById("reset-btn");
-const scoreXElement = document.getElementById("score-x");
-const scoreOElement = document.getElementById("score-o");
-const scoreDrawsElement = document.getElementById("score-draws");
+<canvas id="confetti"></canvas>
 
-// ✅ Add banner reference
-const announcement = document.getElementById("announcement");
+<div class="game-container">
+  <h2>Tic Tac Toe</h2>
+
+  <div class="scoreboard">
+    <div>You: <strong id="score-x">0</strong></div>
+    <div>Bot: <strong id="score-o">0</strong></div>
+    <div>Draws: <strong id="score-d">0</strong></div>
+  </div>
+
+  <div class="controls">
+    Difficulty:
+    <select id="difficulty">
+      <option value="easy">Easy</option>
+      <option value="medium" selected>Medium</option>
+      <option value="hard">Impossible</option>
+    </select>
+  </div>
+
+  <div id="status">Your turn</div>
+  <div class="board" id="board"></div>
+
+  <button onclick="resetBoard()">Reset Board</button>
+</div>
+
+<script>
+const boardEl = document.getElementById("board");
+const statusEl = document.getElementById("status");
+const banner = document.getElementById("announcement");
+const difficultyEl = document.getElementById("difficulty");
+
+const scoreXEl = document.getElementById("score-x");
+const scoreOEl = document.getElementById("score-o");
+const scoreDEl = document.getElementById("score-d");
 
 let board = Array(9).fill(null);
-let currentPlayer = "X";
 let gameActive = true;
-const isVsBot = true;
+let scores = { X: 0, O: 0, D: 0 };
 
-let scores = { X: 0, O: 0, draws: 0 };
-
-const winningCombos = [
-  [0, 1, 2],[3, 4, 5],[6, 7, 8],
-  [0, 3, 6],[1, 4, 7],[2, 5, 8],
-  [0, 4, 8],[2, 4, 6],
+const wins = [
+  [0,1,2],[3,4,5],[6,7,8],
+  [0,3,6],[1,4,7],[2,5,8],
+  [0,4,8],[2,4,6]
 ];
 
-function createBoard() {
-  boardElement.innerHTML = "";
-  for (let i = 0; i < 9; i++) {
-    const cell = document.createElement("div");
-    cell.classList.add("cell");
-    cell.dataset.index = i;
-    cell.addEventListener("click", handleCellClick);
-    boardElement.appendChild(cell);
+// Build board
+for (let i = 0; i < 9; i++) {
+  const cell = document.createElement("div");
+  cell.className = "cell";
+  cell.onclick = () => handleMove(i);
+  boardEl.appendChild(cell);
+}
+
+function handleMove(i){
+  if (!gameActive || board[i]) return;
+
+  play(i, "X");
+  if (!gameActive) return;
+
+  setTimeout(() => {
+    play(getBotMove(), "O");
+  }, 300);
+}
+
+function play(i, player){
+  board[i] = player;
+  boardEl.children[i].textContent = player;
+
+  if (checkWin(board, player)){
+    gameActive = false;
+
+    if (player === "X"){
+      scores.X++;
+      statusEl.textContent = "🎉 YOU WIN!";
+      banner.style.display = "block";
+      startConfetti();
+    } else {
+      scores.O++;
+      statusEl.textContent = "🤖 Bot wins!";
+    }
+    updateScores();
+    return;
+  }
+
+  if (board.every(c => c)){
+    gameActive = false;
+    scores.D++;
+    statusEl.textContent = "Draw!";
+    updateScores();
   }
 }
 
-function handleCellClick(e) {
-  const index = parseInt(e.target.dataset.index, 10);
-  if (!gameActive || board[index] !== null) return;
-  if (isVsBot && currentPlayer === "O") return;
+function checkWin(b, p){
+  return wins.some(([a,b1,c]) => b[a]===p && b[b1]===p && b[c]===p);
+}
 
-  const ended = playMove(index, currentPlayer);
-  if (ended) return;
+/* 🤖 BOT LOGIC */
+function getBotMove(){
+  const level = difficultyEl.value;
 
-  currentPlayer = currentPlayer === "X" ? "O" : "X";
+  if (level === "easy") return randomMove();
 
-  if (isVsBot && currentPlayer === "O") {
-    statusElement.innerHTML = `Computer's turn...`;
+  if (level === "medium"){
+    return Math.random() < 0.7 ? smartMove() : randomMove();
+  }
 
-    setTimeout(() => {
-      if (!gameActive) return;
-      const botIndex = chooseBotMove();
-      if (botIndex == null) return;
+  return minimaxMove(); // impossible
+}
 
-      const botEnded = playMove(botIndex, "O");
+function randomMove(){
+  const free = board.map((v,i)=>v?null:i).filter(v=>v!==null);
+  return free[Math.floor(Math.random()*free.length)];
+}
 
-      if (!botEnded) {
-        currentPlayer = "X";
-        statusElement.innerHTML = `Your turn: X `;
+function smartMove(){
+  // win or block
+  for (let p of ["O","X"]){
+    for (let i=0;i<9;i++){
+      if (!board[i]){
+        board[i]=p;
+        if (checkWin(board,p)){
+          board[i]=null;
+          return i;
+        }
+        board[i]=null;
       }
-    }, 400);
+    }
+  }
+  return randomMove();
+}
+
+/* ✅ MINIMAX (IMPOSSIBLE) */
+function minimaxMove(){
+  let bestScore = -Infinity;
+  let move;
+
+  board.forEach((c,i)=>{
+    if (!c){
+      board[i]="O";
+      let score = minimax(board,0,false);
+      board[i]=null;
+      if (score>bestScore){
+        bestScore=score;
+        move=i;
+      }
+    }
+  });
+  return move;
+}
+
+function minimax(b, depth, isMax){
+  if (checkWin(b,"O")) return 10-depth;
+  if (checkWin(b,"X")) return depth-10;
+  if (b.every(c=>c)) return 0;
+
+  if (isMax){
+    return Math.max(...b.map((c,i)=>{
+      if (!c){
+        b[i]="O";
+        let v=minimax(b,depth+1,false);
+        b[i]=null;
+        return v;
+      }
+      return -Infinity;
+    }));
   } else {
-    statusElement.innerHTML = `Current turn: ${currentPlayer}`;
+    return Math.min(...b.map((c,i)=>{
+      if (!c){
+        b[i]="X";
+        let v=minimax(b,depth+1,true);
+        b[i]=null;
+        return v;
+      }
+      return Infinity;
+    }));
   }
 }
 
-function playMove(index, player) {
-  board[index] = player;
-
-  const cell = document.querySelector(`.cell[data-index="${index}"]`);
-  cell.textContent = player;
-
-  const winInfo = checkWin();
-
-  if (winInfo) {
-    gameActive = false;
-    scores[player] += 1;
-    updateScores();
-    highlightWinningCells(winInfo.combo);
-
-    // ✅ SHOW POPUP
-    alert("Nick's last day in ABI will Be June 26. I will be joining the Supervisor Team in the Victoria Contact Center");
-
-    // ✅ SHOW BANNER
-    announcement.style.display = "block";
-
-    // ✅ UPDATE TEXT
-    statusElement.innerHTML =
-      "Nick's last day in ABI will Be June 26. I will be joining the Supervisor Team in the Victoria Contact Center";
-
-    disableRemainingCells();
-    return true;
-  }
-
-  if (board.every((cellVal) => cellVal !== null)) {
-    gameActive = false;
-    scores.draws += 1;
-    updateScores();
-    statusElement.innerHTML = "🤝 It's a draw!";
-    return true;
-  }
-
-  return false;
+function updateScores(){
+  scoreXEl.textContent = scores.X;
+  scoreOEl.textContent = scores.O;
+  scoreDEl.textContent = scores.D;
 }
 
-function checkWin() {
-  for (const combo of winningCombos) {
-    const [a, b, c] = combo;
-    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-      return { player: board[a], combo };
-    }
-  }
-  return null;
-}
-
-function highlightWinningCells(combo) {
-  const cells = document.querySelectorAll(".cell");
-  combo.forEach((index) => {
-    cells[index].classList.add("win");
-  });
-}
-
-function disableRemainingCells() {
-  const cells = document.querySelectorAll(".cell");
-  cells.forEach((cell) => {
-    if (!cell.textContent) {
-      cell.classList.add("disabled");
-    }
-  });
-}
-
-function resetBoard() {
-  board = Array(9).fill(null);
-  currentPlayer = "X";
+function resetBoard(){
+  board.fill(null);
   gameActive = true;
-  statusElement.innerHTML = `Your turn: X`;
+  statusEl.textContent = "Your turn";
+  banner.style.display = "none";
+  stopConfetti();
+  [...boardEl.children].forEach(c=>c.textContent="");
+}
 
-  // ✅ HIDE BANNER ON RESET
-  announcement.style.display = "none";
+/* 🎉 CONFETTI */
+const canvas = document.getElementById("confetti");
+const ctx = canvas.getContext("2d");
+let confetti=[], active=false;
 
-  const cells = document.querySelectorAll(".cell");
-  cells.forEach((cell) => {
-    cell.textContent = "";
-    cell.classList.remove("win", "disabled");
+function resize(){
+  canvas.width=innerWidth;
+  canvas.height=innerHeight;
+}
+resize(); onresize=resize;
+
+function startConfetti(){
+  active=true;
+  confetti=Array.from({length:120},()=>({
+    x:Math.random()*canvas.width,
+    y:Math.random()*canvas.height-canvas.height,
+    r:Math.random()*6+2,
+    d:Math.random()*5+2,
+    c:`hsl(${Math.random()*360},100%,50%)`
+  }));
+  animate();
+}
+
+function stopConfetti(){
+  active=false;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+}
+
+function animate(){
+  if(!active)return;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  confetti.forEach(p=>{
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle=p.c;
+    ctx.fill();
+    p.y+=p.d;
+    if(p.y>canvas.height)p.y=-10;
   });
+  requestAnimationFrame(animate);
 }
-
-function updateScores() {
-  scoreXElement.textContent = scores.X;
-  scoreOElement.textContent = scores.O;
-  scoreDrawsElement.textContent = scores.draws;
-}
-
-// --- BOT LOGIC ---
-function getAvailableMoves() {
-  return board.map((v, i) => (v === null ? i : null)).filter(v => v !== null);
-}
-
-function findWinningMove(player) {
-  const moves = getAvailableMoves();
-  for (const move of moves) {
-    board[move] = player;
-    const winInfo = checkWin();
-    board[move] = null;
-    if (winInfo && winInfo.player === player) return move;
-  }
-  return null;
-}
-
-function chooseBotMove() {
-  let move = findWinningMove("O");
-  if (move !== null) return move;
-
-  move = findWinningMove("X");
-  if (move !== null) return move;
-
-  const available = getAvailableMoves();
-
-  if (available.includes(4)) return 4;
-
-  const corners = [0, 2, 6, 8].filter(i => available.includes(i));
-  if (corners.length > 0) {
-    return corners[Math.floor(Math.random() * corners.length)];
-  }
-
-  if (available.length > 0) {
-    return available[Math.floor(Math.random() * available.length)];
-  }
-
-  return null;
-}
-
-resetBtn.addEventListener("click", resetBoard);
-createBoard();
 </script>
+
+</body>
+</html>
+
