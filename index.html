@@ -50,7 +50,7 @@ body {
   border-radius: 8px;
 }
 
-/* ✅ Banner (kept, but not auto-triggered) */
+/* ✅ WIN BANNER */
 #announcement {
   position: fixed;
   top: 20px;
@@ -62,6 +62,7 @@ body {
   border-radius: 10px;
   font-weight: bold;
   display: none;
+  z-index: 10;
 }
 
 /* ✅ Confetti canvas */
@@ -76,9 +77,9 @@ canvas {
 
 <body>
 
-<!-- ✅ Banner kept -->
+<!-- ✅ Banner (only shows on player win) -->
 <div id="announcement">
-  Nick's last day in ABI will be June 26. I will be joining the Supervisor Team in the Victoria Contact Center
+  Nick's last day in ABI will Be June 26. I will be joining the Supervisor Team in the Victoria Contact Center
 </div>
 
 <canvas id="confetti"></canvas>
@@ -86,7 +87,6 @@ canvas {
 <div class="game-container">
   <h2>Tic Tac Toe</h2>
 
-  <!-- ✅ SCOREBOARD -->
   <div class="scoreboard">
     <div>You: <strong id="score-x">0</strong></div>
     <div>Bot: <strong id="score-o">0</strong></div>
@@ -103,6 +103,7 @@ canvas {
 <script>
 const boardEl = document.getElementById("board");
 const statusEl = document.getElementById("status");
+const banner = document.getElementById("announcement");
 
 const scoreXEl = document.getElementById("score-x");
 const scoreOEl = document.getElementById("score-o");
@@ -111,7 +112,6 @@ const scoreDEl = document.getElementById("score-d");
 let board = Array(9).fill(null);
 let gameActive = true;
 
-// ✅ Score tracking
 let scores = { X: 0, O: 0, D: 0 };
 
 const wins = [
@@ -131,29 +131,30 @@ for (let i = 0; i < 9; i++) {
 function handleMove(i){
   if (!gameActive || board[i]) return;
 
-  play(i,"X");
+  play(i, "X");
   if (!gameActive) return;
 
   setTimeout(() => {
-    const move = chooseMove();
-    play(move,"O");
-  },300);
+    const move = bestMove();
+    play(move, "O");
+  }, 300);
 }
 
 function play(i, player){
   board[i] = player;
   boardEl.children[i].textContent = player;
 
-  if (checkWin()){
+  if (checkWin(board, player)){
     gameActive = false;
 
     if (player === "X"){
       scores.X++;
-      statusEl.innerHTML = "🎉 YOU WIN!";
+      statusEl.textContent = "🎉 YOU WIN!";
+      banner.style.display = "block";
       startConfetti();
     } else {
       scores.O++;
-      statusEl.innerHTML = "🤖 Bot wins!";
+      statusEl.textContent = "🤖 Bot wins!";
     }
 
     updateScores();
@@ -163,37 +164,79 @@ function play(i, player){
   if (board.every(c => c)){
     gameActive = false;
     scores.D++;
+    statusEl.textContent = "Draw!";
     updateScores();
-    statusEl.innerHTML = "Draw!";
   }
 }
 
-function checkWin(){
-  return wins.some(([a,b,c]) =>
-    board[a] && board[a] === board[b] && board[a] === board[c]
+/* ✅ WIN CHECK */
+function checkWin(b, p){
+  return wins.some(([a,b1,c]) =>
+    b[a] === p && b[b1] === p && b[c] === p
   );
 }
 
-// Bot (random)
-function chooseMove(){
-  const free = board
-    .map((v,i) => v ? null : i)
-    .filter(v => v !== null);
-  return free[Math.floor(Math.random() * free.length)];
+/* ✅ UNBEATABLE BOT (MINIMAX) */
+function bestMove(){
+  let bestScore = -Infinity;
+  let move;
+
+  board.forEach((cell, i) => {
+    if (!cell){
+      board[i] = "O";
+      let score = minimax(board, 0, false);
+      board[i] = null;
+      if (score > bestScore){
+        bestScore = score;
+        move = i;
+      }
+    }
+  });
+
+  return move;
 }
 
-// ✅ Update scoreboard
+function minimax(b, depth, isMax){
+  if (checkWin(b, "O")) return 10 - depth;
+  if (checkWin(b, "X")) return depth - 10;
+  if (b.every(c => c)) return 0;
+
+  if (isMax){
+    let best = -Infinity;
+    b.forEach((c, i) => {
+      if (!c){
+        b[i] = "O";
+        best = Math.max(best, minimax(b, depth + 1, false));
+        b[i] = null;
+      }
+    });
+    return best;
+  } else {
+    let best = Infinity;
+    b.forEach((c, i) => {
+      if (!c){
+        b[i] = "X";
+        best = Math.min(best, minimax(b, depth + 1, true));
+        b[i] = null;
+      }
+    });
+    return best;
+  }
+}
+
+/* ✅ SCORE UPDATE */
 function updateScores(){
   scoreXEl.textContent = scores.X;
   scoreOEl.textContent = scores.O;
   scoreDEl.textContent = scores.D;
 }
 
-// ✅ Reset board (scores persist)
+/* ✅ RESET (keeps scores) */
 function resetBoard(){
   board.fill(null);
   gameActive = true;
-  statusEl.innerHTML = "Your turn";
+  statusEl.textContent = "Your turn";
+  banner.style.display = "none";
   stopConfetti();
 
   [...boardEl.children].forEach(c => c.textContent = "");
@@ -220,7 +263,7 @@ function startConfetti(){
     y: Math.random() * canvas.height - canvas.height,
     r: Math.random() * 6 + 2,
     d: Math.random() * 5 + 2,
-    color: `hsl(${Math.random() * 360},100%,50%)`
+    color: `hsl(${Math.random()*360},100%,50%)`
   }));
   animate();
 }
@@ -236,18 +279,4 @@ function animate(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
   confetti.forEach(p => {
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    ctx.fillStyle = p.color;
-    ctx.fill();
 
-    p.y += p.d;
-    if (p.y > canvas.height) p.y = -10;
-  });
-
-  requestAnimationFrame(animate);
-}
-</script>
-
-</body>
-</html>
