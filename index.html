@@ -23,6 +23,14 @@ body {
   text-align: center;
 }
 
+/* ✅ SCOREBOARD */
+.scoreboard {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
 .board {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -75,10 +83,21 @@ canvas {
 <canvas id="confetti"></canvas>
 
 <div class="game-container">
+
   <h2>Tic Tac Toe</h2>
+
+  <!-- ✅ SCOREBOARD -->
+  <div class="scoreboard">
+    <div>You: <strong id="score-x">0</strong></div>
+    <div>Bot: <strong id="score-o">0</strong></div>
+    <div>Draws: <strong id="score-d">0</strong></div>
+  </div>
+
   <div id="status">Your turn</div>
+
   <div class="board" id="board"></div>
-  <button onclick="resetBoard()">Reset</button>
+
+  <button onclick="resetBoard()">Reset Board</button>
 </div>
 
 <script>
@@ -86,9 +105,16 @@ const boardEl = document.getElementById("board");
 const statusEl = document.getElementById("status");
 const announcement = document.getElementById("announcement");
 
+const scoreXEl = document.getElementById("score-x");
+const scoreOEl = document.getElementById("score-o");
+const scoreDEl = document.getElementById("score-d");
+
 let board = Array(9).fill(null);
 let current = "X";
 let gameActive = true;
+
+// ✅ Score tracking
+let scores = { X: 0, O: 0, D: 0 };
 
 const wins = [
   [0,1,2],[3,4,5],[6,7,8],
@@ -96,7 +122,7 @@ const wins = [
   [0,4,8],[2,4,6]
 ];
 
-// ✅ Build board
+// Build board
 for (let i = 0; i < 9; i++) {
   const cell = document.createElement("div");
   cell.classList.add("cell");
@@ -127,12 +153,17 @@ function play(i,player){
     gameActive = false;
 
     if (player === "X"){
-      // ✅ ONLY PLAYER GETS THIS
-      alert("Nick's last day in ABI will Be June 26. I will be joining the Supervisor Team in the Victoria Contact Center");
+      scores.X++;
+      updateScores();
+
+      // ✅ ONLY PLAYER
       announcement.style.display = "block";
       statusEl.innerHTML = "🎉 YOU WIN!";
       startConfetti();
+
     } else {
+      scores.O++;
+      updateScores();
       statusEl.innerHTML = "🤖 Bot wins!";
     }
 
@@ -141,6 +172,8 @@ function play(i,player){
 
   if (board.every(c=>c)){
     gameActive = false;
+    scores.D++;
+    updateScores();
     statusEl.innerHTML = "Draw!";
     return;
   }
@@ -152,56 +185,64 @@ function checkWin(){
   );
 }
 
-// ✅ Simple bot
+// Bot
 function chooseMove(){
   let free = board.map((v,i)=>v?null:i).filter(v=>v!==null);
   return free[Math.floor(Math.random()*free.length)];
 }
 
-// ✅ Reset
+// ✅ Update scoreboard
+function updateScores(){
+  scoreXEl.textContent = scores.X;
+  scoreOEl.textContent = scores.O;
+  scoreDEl.textContent = scores.D;
+}
+
+// Reset board only (keeps score)
 function resetBoard(){
   board.fill(null);
   gameActive = true;
   statusEl.innerHTML = "Your turn";
+
   announcement.style.display = "none";
   stopConfetti();
 
   [...boardEl.children].forEach(c=>c.textContent="");
 }
 
-/* ✅ CONFETTI SYSTEM */
+/* ✅ CONFETTI */
 const canvas = document.getElementById("confetti");
 const ctx = canvas.getContext("2d");
 
 let confetti = [];
-let confettiActive = false;
+let active = false;
 
-function resizeCanvas(){
+function resize(){
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 }
-window.onresize = resizeCanvas;
-resizeCanvas();
+resize();
+window.onresize = resize;
 
 function startConfetti(){
-  confettiActive = true;
-  confetti = Array.from({length:150},()=>({
+  active = true;
+  confetti = Array.from({length:120},()=>({
     x: Math.random()*canvas.width,
     y: Math.random()*canvas.height - canvas.height,
     r: Math.random()*6+2,
     d: Math.random()*5+2,
     color: `hsl(${Math.random()*360},100%,50%)`
   }));
-  animateConfetti();
+  animate();
 }
 
 function stopConfetti(){
-  confettiActive = false;
+  active = false;
   ctx.clearRect(0,0,canvas.width,canvas.height);
 }
 
-function animateConfetti(){
-  if (!confettiActive) return;
+function animate(){
+  if (!active) return;
 
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
@@ -215,9 +256,13 @@ function animateConfetti(){
     if (p.y > canvas.height) p.y = -10;
   });
 
-  requestAnimationFrame(animateConfetti);
+  requestAnimationFrame(animate);
 }
 </script>
+
+</body>
+</html>
+
 
 </body>
 </html>
